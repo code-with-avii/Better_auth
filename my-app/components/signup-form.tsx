@@ -20,6 +20,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { Eye, EyeOff } from "lucide-react";
+import { handleSocialLogin } from "@/lib/social-login";
 
 export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
@@ -79,21 +80,15 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
     router.push("/dashboard");
   };
 
-  const handleSocialSignUp = async (provider: "google") => {
-    setLoading(true);
-    setError("");
+  const onSocialLogin = async (provider: "google" | "github") => {
     try {
-      const { error: socialError } = await authClient.signIn.social({
-        provider,
-        callbackURL: "/dashboard",
-      });
-      if (socialError) {
-        setError(socialError.message || `Failed to sign up with ${provider}`);
-        setLoading(false);
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(message);
+      setLoading(true);
+      setError("");
+
+      await handleSocialLogin(provider);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Social login failed.");
+
       setLoading(false);
     }
   };
@@ -207,15 +202,27 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                 <Button type="submit" disabled={loading} className="w-full">
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  disabled={loading}
-                  className="w-full mt-2"
-                  onClick={() => handleSocialSignUp("google")}
-                >
-                  Sign up with Google
-                </Button>
+                <div className="grid gap-2">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    disabled={loading}
+                    className="w-full"
+                    onClick={() => onSocialLogin("google")}
+                  >
+                    Sign up with Google
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    type="button"
+                    disabled={loading}
+                    className="w-full"
+                    onClick={() => onSocialLogin("github")}
+                  >
+                    Sign up with GitHub
+                  </Button>
+                </div>
                 <FieldDescription className="px-6 text-center mt-3">
                   Already have an account? {""}{" "}
                   <Link href="/login" className="underline">
@@ -230,4 +237,3 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
     </Card>
   );
 }
-

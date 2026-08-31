@@ -29,4 +29,11 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     sendOnSignIn: true,
   },
+
+  socialProviders:{
+    google: {
+      clientId:process.env.GOOGLE_CLIENT_ID as string,
+      clientsecret:process.env.GOOGLE_CLIENT_SECRET as string,
+    }
+  }
 });

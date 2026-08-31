@@ -18,9 +18,10 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { handleSocialLogin } from "@/lib/social-login";
+import { authClient } from "@/lib/auth-client";
 
 export function LoginForm({
   className,
@@ -34,6 +35,9 @@ export function LoginForm({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [socialLoading, setSocialLoading] = useState<
+    "google" | "github" | null
+  >(null);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,26 +74,18 @@ export function LoginForm({
 
     router.push("/dashboard");
   };
-
-  const handleSocialLogin = async (provider: "google" | "apple") => {
-    setLoading(true);
-    setError("");
+  const onSocialLogin = async (provider: "google" | "github") => {
     try {
-      const { error: socialError } = await authClient.signIn.social({
-        provider,
-        callbackURL: "/dashboard",
-      });
-      if (socialError) {
-        setError(socialError.message || `Failed to sign in with ${provider}`);
-        setLoading(false);
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(message);
-      setLoading(false);
+      setSocialLoading(provider);
+      setError("");
+
+      await handleSocialLogin(provider);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Social login failed");
+
+      setSocialLoading(null);
     }
   };
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -101,40 +97,57 @@ export function LoginForm({
           <form onSubmit={handleLogin}>
             <FieldGroup>
               {/* Social Login */}
+              {/* Social Login */}
               <Field>
                 <div className="flex gap-2">
+                  {/* Google */}
                   <Button
                     variant="outline"
                     type="button"
                     className="w-full"
-                    disabled={loading}
-                    onClick={() => handleSocialLogin("apple")}
+                    disabled={loading || socialLoading !== null}
+                    onClick={() => onSocialLogin("google")}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
-                      <path
-                        d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    Apple
-                  </Button>
-                  <Button
-                    variant="outline"
-                    type="button"
-                    className="w-full"
-                    disabled={loading}
-                    onClick={() => handleSocialLogin("google")}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="mr-2 h-4 w-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      className="mr-2 h-4 w-4"
+                      aria-hidden="true"
+                    >
                       <path
                         d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
                         fill="currentColor"
                       />
                     </svg>
-                    Google
+
+                    {socialLoading === "google" ? "Connecting..." : "Google"}
+                  </Button>
+
+                  {/* GitHub */}
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full"
+                    disabled={loading || socialLoading !== null}
+                    onClick={() => onSocialLogin("github")}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      className="mr-2 h-4 w-4"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.93.58.11.79-.25.79-.56v-2.1c-3.2.7-3.87-1.54-3.87-1.54-.53-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.47.11-3.06 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.77.11 3.06.73.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.08.78 2.18v3.23c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+                      />
+                    </svg>
+
+                    {socialLoading === "github" ? "Connecting..." : "GitHub"}
                   </Button>
                 </div>
               </Field>
+
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
               </FieldSeparator>
@@ -208,10 +221,16 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#" className="underline">Terms of Service</a>{" "}
-        and <a href="#" className="underline">Privacy Policy</a>.
+        By clicking continue, you agree to our{" "}
+        <a href="#" className="underline">
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a href="#" className="underline">
+          Privacy Policy
+        </a>
+        .
       </FieldDescription>
     </div>
   );
 }
-
