@@ -147,7 +147,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
       {/* Main Content Dashboard */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section with Backdrop Gradient */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-zinc-900 to-zinc-850 p-6 text-white shadow-xl dark:from-zinc-900 dark:to-zinc-900/50 dark:border dark:border-zinc-800/60 sm:p-8 mb-8">
+        <div className="relative overflow-hidden rounded-2xl bg-lineart-to-r from-zinc-900 to-zinc-850 p-6 text-white shadow-xl dark:from-zinc-900 dark:to-zinc-900/50 dark:border dark:border-zinc-800/60 sm:p-8 mb-8">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
@@ -171,7 +171,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
             </div>
           </div>
           {/* Subtle grid backdrop decoration */}
-          <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+          <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]" />
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
@@ -201,7 +201,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                     <Mail className="h-4 w-4" />
                     <span>Email address</span>
                   </div>
-                  <span className="font-medium text-right truncate max-w-[180px]">{user.email}</span>
+                  <span className="font-medium text-right truncate max-w-45">{user.email}</span>
                 </div>
 
                 <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-900">
@@ -254,7 +254,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                   </div>
                   <div>
                     <h4 className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Device User Agent</h4>
-                    <p className="mt-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200 break-words leading-relaxed max-w-[280px]">
+                    <p className="mt-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200 wrap-break leading-relaxed max-w-70">
                       {session.userAgent || "Desktop Browser"}
                     </p>
                   </div>
@@ -279,7 +279,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                     <Activity className="h-4 w-4" />
                     <span>Session Token</span>
                   </div>
-                  <span className="font-mono text-xs max-w-[200px] truncate select-all px-2 py-1 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200/50 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400">
+                  <span className="font-mono text-xs max-w-50 truncate select-all px-2 py-1 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200/50 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400">
                     {session.token}
                   </span>
                 </div>
