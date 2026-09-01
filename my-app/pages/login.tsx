@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { GetServerSideProps } from "next"
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
+  
   const session = await auth.api.getSession({
     headers: new Headers(context.req.headers as unknown as Record<string, string>),
   });

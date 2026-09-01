@@ -7,7 +7,7 @@ export async function sendVerificationEmail(
   url: string
 ) {
   const { data, error } = await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "AuthFlow <auth@avii.in>",
     to: email,
     subject: "Verify your email",
     html: `

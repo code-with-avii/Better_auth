@@ -13,7 +13,6 @@ import {
   Laptop,
   Globe,
   Activity,
-  Settings,
   ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      initialSession: session,
+      initialSession: JSON.parse(JSON.stringify(session)),
     },
   };
 };
@@ -111,12 +110,12 @@ export default function Dashboard({ initialSession }: DashboardProps) {
               >
                 Dashboard
               </Link>
-              <Link
+              {/* <Link
                 href="/profile"
                 className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 px-3 py-1.5 transition-colors"
               >
                 Profile Settings
-              </Link>
+              </Link> */}
             </nav>
           </div>
 
@@ -147,7 +146,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
       {/* Main Content Dashboard */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section with Backdrop Gradient */}
-        <div className="relative overflow-hidden rounded-2xl bg-lineart-to-r from-zinc-900 to-zinc-850 p-6 text-white shadow-xl dark:from-zinc-900 dark:to-zinc-900/50 dark:border dark:border-zinc-800/60 sm:p-8 mb-8">
+        <div className="relative overflow-hidden rounded-2xl bg-lineart-to-r from-zinc-900 to-zinc-850 p-6 text-black shadow-xl dark:from-zinc-900 dark:to-zinc-900/50 dark:border dark:border-zinc-800/60 sm:p-8 mb-8">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
@@ -157,18 +156,18 @@ export default function Dashboard({ initialSession }: DashboardProps) {
               <h1 className="mt-4 text-3xl font-extrabold tracking-tight">
                 Welcome back, {user.name}!
               </h1>
-              <p className="mt-2 text-zinc-300 max-w-2xl">
+              <p className="mt-2 text-gray-900 max-w-2xl">
                 Manage your credentials, monitor active sessions, and configure profile parameters in Acme&apos;s secure authentication client portal.
               </p>
             </div>
-            <div className="flex gap-3">
+            {/* <div className="flex gap-3">
               <Link href="/profile">
                 <Button className="bg-white text-zinc-950 hover:bg-zinc-100 flex items-center gap-2">
                   <Settings className="size-4" />
                   Account Settings
                 </Button>
               </Link>
-            </div>
+            </div> */}
           </div>
           {/* Subtle grid backdrop decoration */}
           <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]" />
@@ -281,19 +280,6 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                   </div>
                   <span className="font-mono text-xs max-w-50 truncate select-all px-2 py-1 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200/50 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400">
                     {session.token}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-2.5 border-b border-zinc-100 dark:border-zinc-900">
-                  <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                    <Calendar className="h-4 w-4" />
-                    <span>Expires At</span>
-                  </div>
-                  <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                    {new Date(session.expiresAt).toLocaleString(undefined, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
                   </span>
                 </div>
 
