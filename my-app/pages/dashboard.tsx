@@ -16,11 +16,19 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await auth.api.getSession({
-    headers: new Headers(context.req.headers as unknown as Record<string, string>),
+    headers: new Headers(
+      context.req.headers as unknown as Record<string, string>,
+    ),
   });
 
   if (!session) {
@@ -32,9 +40,22 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  const initialSession = JSON.parse(JSON.stringify(session));
+
+  const registeredDate = new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(session.user.createdAt));
+
   return {
     props: {
-      initialSession: JSON.parse(JSON.stringify(session)),
+      initialSession,
+      registeredDate,
     },
   };
 };
@@ -56,9 +77,10 @@ interface DashboardProps {
       ipAddress?: string | null;
     };
   };
+  registeredDate: string;
 }
 
-export default function Dashboard({ initialSession }: DashboardProps) {
+export default function Dashboard({ initialSession,registeredDate }: DashboardProps) {
   const router = useRouter();
   const { data: sessionData } = authClient.useSession();
 
@@ -97,11 +119,16 @@ export default function Dashboard({ initialSession }: DashboardProps) {
       <header className="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/80">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 font-semibold"
+            >
               <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
                 A
               </div>
-              <span className="text-lg tracking-tight font-bold">Acme Auth</span>
+              <span className="text-lg tracking-tight font-bold">
+                Acme Auth
+              </span>
             </Link>
             <nav className="hidden md:flex gap-4">
               <Link
@@ -123,7 +150,9 @@ export default function Dashboard({ initialSession }: DashboardProps) {
             <div className="flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-semibold">{user.name}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">{user.email}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {user.email}
+                </p>
               </div>
               <div className="flex size-9 items-center justify-center rounded-full bg-zinc-200 text-sm font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                 {getInitials(user.name)}
@@ -157,7 +186,9 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                 Welcome back, {user.name}!
               </h1>
               <p className="mt-2 text-gray-900 max-w-2xl">
-                Manage your credentials, monitor active sessions, and configure profile parameters in Acme&apos;s secure authentication client portal.
+                Manage your credentials, monitor active sessions, and configure
+                profile parameters in Acme&apos;s secure authentication client
+                portal.
               </p>
             </div>
             {/* <div className="flex gap-3">
@@ -189,8 +220,12 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                   {getInitials(user.name)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-semibold">{user.name}</h3>
-                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">UUID: {user.id}</p>
+                  <h3 className="truncate text-sm font-semibold">
+                    {user.name}
+                  </h3>
+                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                    UUID: {user.id}
+                  </p>
                 </div>
               </div>
 
@@ -200,7 +235,9 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                     <Mail className="h-4 w-4" />
                     <span>Email address</span>
                   </div>
-                  <span className="font-medium text-right truncate max-w-45">{user.email}</span>
+                  <span className="font-medium text-right truncate max-w-45">
+                    {user.email}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between py-2 border-b border-zinc-100 dark:border-zinc-900">
@@ -225,11 +262,7 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                     <span>Registered</span>
                   </div>
                   <span className="font-medium">
-                    {new Date(user.createdAt).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    {registeredDate}
                   </span>
                 </div>
               </div>
@@ -243,7 +276,9 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
                 Security & Session State
               </CardTitle>
-              <CardDescription>Real-time login session tracking details</CardDescription>
+              <CardDescription>
+                Real-time login session tracking details
+              </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-6">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -252,7 +287,9 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                     <Laptop className="h-5 w-5 text-zinc-500" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Device User Agent</h4>
+                    <h4 className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      Device User Agent
+                    </h4>
                     <p className="mt-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200 wrap-break leading-relaxed max-w-70">
                       {session.userAgent || "Desktop Browser"}
                     </p>
@@ -264,7 +301,9 @@ export default function Dashboard({ initialSession }: DashboardProps) {
                     <Globe className="h-5 w-5 text-zinc-500" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">IP Address</h4>
+                    <h4 className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      IP Address
+                    </h4>
                     <p className="mt-1 text-sm font-mono font-semibold text-zinc-800 dark:text-zinc-200">
                       {session.ipAddress || "127.0.0.1"}
                     </p>

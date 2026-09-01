@@ -77,7 +77,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(`/verify-email?email=${encodeURIComponent(cleanEmail)}`);
   };
 
   const onSocialLogin = async (provider: "google" | "github") => {

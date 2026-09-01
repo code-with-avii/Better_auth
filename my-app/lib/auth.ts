@@ -16,6 +16,12 @@ export const auth = betterAuth({
       await sendResetPasswordEmail(user.email, url);
     },
   },
+  account:{
+    accountLinking:{
+      enabled:true,
+      trustedProviders:["google","github"],
+    }
+  },
 
   session: {
     expiresIn: 60 * 60 * 24 * 7,
