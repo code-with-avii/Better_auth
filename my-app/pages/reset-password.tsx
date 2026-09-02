@@ -17,6 +17,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  
   return {
     props: {},
   };
@@ -30,7 +31,7 @@ export default function ResetPasswordPage() {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEndIcon className="size-4" />
           </div>
-          Acme Inc.
+          Better Auth.
         </a>
         <ResetPasswordForm />
       </div>

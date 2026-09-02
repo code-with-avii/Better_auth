@@ -70,7 +70,7 @@ export function ResetPasswordForm({
       setLoading(false);
       return;
     }
-
+    
     try {
       const { error: resetError } = await authClient.resetPassword({
         newPassword: password,

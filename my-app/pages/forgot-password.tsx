@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GalleryVerticalEndIcon className="size-4" />
           </div>
-          Acme Inc.
+          Better Auth.
         </a>
         <ForgotPasswordForm />
       </div>
