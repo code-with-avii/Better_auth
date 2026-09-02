@@ -52,7 +52,7 @@ export async function sendResetPasswordEmail(
   url: string
 ) {
   const { data, error } = await resend.emails.send({
-    from: "onboarding@resend.dev",
+    from: "AuthFlow <auth@avii.in>",
     to: email,
     subject: "Reset your password",
     html: `
