@@ -19,11 +19,14 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast";
+import { getUserFriendlyErrorMessage, logServerError } from "@/lib/errors";
 
 export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -50,16 +53,25 @@ export function ForgotPasswordForm({
       });
 
       if (resetError) {
-        setError(resetError.message || "Failed to send reset link.");
+        logServerError("Request password reset", resetError);
+        const friendlyMsg = getUserFriendlyErrorMessage(
+          resetError,
+          "Failed to send reset link. Please try again."
+        );
+        setError(friendlyMsg);
+        toast.error(friendlyMsg);
         setLoading(false);
         return;
       }
 
       setSuccess(true);
+      toast.success("Password reset email sent! Check your inbox.");
       setLoading(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(message);
+      logServerError("Unexpected request password reset error", err);
+      const friendlyMsg = getUserFriendlyErrorMessage(err);
+      setError(friendlyMsg);
+      toast.error(friendlyMsg);
       setLoading(false);
     }
   };
@@ -77,7 +89,7 @@ export function ForgotPasswordForm({
           {success ? (
             <div className="flex flex-col gap-4 text-center">
               <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/20 dark:text-green-400 dark:border-green-800">
-                Check your email for a link to reset your password.
+                If an account exists for {email}, we&apos;ve sent a password reset link to your inbox.
               </div>
               <Link href="/login" className="text-sm font-medium text-primary hover:underline">
                 Back to Login

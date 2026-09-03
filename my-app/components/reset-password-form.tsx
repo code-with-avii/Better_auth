@@ -21,12 +21,15 @@ import { useRouter } from "next/router";
 import { authClient } from "@/lib/auth-client";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { getUserFriendlyErrorMessage, logServerError } from "@/lib/errors";
 
 export function ResetPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const toast = useToast();
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -95,20 +98,28 @@ export function ResetPasswordForm({
       });
 
       if (resetError) {
-        setError(resetError.message || "Failed to reset password.");
+        logServerError("Reset password flow", resetError);
+        const friendlyMsg = getUserFriendlyErrorMessage(
+          resetError,
+          "Failed to reset password. The link may have expired."
+        );
+        setError(friendlyMsg);
+        toast.error(friendlyMsg);
         setLoading(false);
         return;
       }
 
       setSuccess(true);
+      toast.success("Password reset successfully! Redirecting to login...");
       setLoading(false);
       setTimeout(() => {
         router.push("/login");
       }, 3000);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "An unexpected error occurred.";
-      setError(message);
+      logServerError("Unexpected reset password error", err);
+      const friendlyMsg = getUserFriendlyErrorMessage(err);
+      setError(friendlyMsg);
+      toast.error(friendlyMsg);
       setLoading(false);
     }
   };

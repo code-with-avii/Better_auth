@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { User, KeyRound, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { getUserFriendlyErrorMessage, logServerError } from "@/lib/errors";
 
 interface ProfileFormProps {
   initialUser: {
@@ -29,6 +31,8 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ initialUser }: ProfileFormProps) {
+  const toast = useToast();
+
   // Profile Update State
   const [name, setName] = useState(initialUser.name);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -66,16 +70,25 @@ export function ProfileForm({ initialUser }: ProfileFormProps) {
       });
 
       if (error) {
-        setProfileError(error.message || "Failed to update profile name.");
+        logServerError("Update user profile", error);
+        const friendlyMsg = getUserFriendlyErrorMessage(
+          error,
+          "Unable to update profile. Please try again."
+        );
+        setProfileError(friendlyMsg);
+        toast.error(friendlyMsg);
         setProfileLoading(false);
         return;
       }
 
       setProfileSuccess(true);
+      toast.success("Your profile has been updated successfully.");
       setProfileLoading(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setProfileError(message);
+      logServerError("Unexpected update profile error", err);
+      const friendlyMsg = getUserFriendlyErrorMessage(err);
+      setProfileError(friendlyMsg);
+      toast.error(friendlyMsg);
       setProfileLoading(false);
     }
   };
@@ -112,19 +125,28 @@ export function ProfileForm({ initialUser }: ProfileFormProps) {
       });
 
       if (error) {
-        setPasswordError(error.message || "Failed to update password. Check your current password.");
+        logServerError("Change password", error);
+        const friendlyMsg = getUserFriendlyErrorMessage(
+          error,
+          "Unable to update password. Please check your current password."
+        );
+        setPasswordError(friendlyMsg);
+        toast.error(friendlyMsg);
         setPasswordLoading(false);
         return;
       }
 
       setPasswordSuccess(true);
+      toast.success("Your password has been changed successfully.");
       setPasswordLoading(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmNewPassword("");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
-      setPasswordError(message);
+      logServerError("Unexpected change password error", err);
+      const friendlyMsg = getUserFriendlyErrorMessage(err);
+      setPasswordError(friendlyMsg);
+      toast.error(friendlyMsg);
       setPasswordLoading(false);
     }
   };
@@ -221,6 +243,7 @@ export function ProfileForm({ initialUser }: ProfileFormProps) {
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    disabled={passwordLoading}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                   >
                     {showCurrentPassword ? (
@@ -248,6 +271,7 @@ export function ProfileForm({ initialUser }: ProfileFormProps) {
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
+                    disabled={passwordLoading}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                   >
                     {showNewPassword ? (

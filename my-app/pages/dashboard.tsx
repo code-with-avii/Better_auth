@@ -24,6 +24,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { useToast } from "@/components/ui/toast";
+import { getUserFriendlyErrorMessage, logServerError } from "@/lib/errors";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await auth.api.getSession({
@@ -84,26 +86,72 @@ export default function Dashboard({
   registeredDate,
 }: DashboardProps) {
   const router = useRouter();
-  const { data: sessionData } = authClient.useSession();
+  const toast = useToast();
+  const { data: sessionData, isPending } = authClient.useSession();
 
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     setLoggingOut(true);
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/login");
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Signed out successfully.");
+            router.push("/login");
+          },
+          onError: (ctx) => {
+            logServerError("Sign out error", ctx.error);
+            const msg = getUserFriendlyErrorMessage(
+              ctx.error,
+              "Unable to sign out. Please try again."
+            );
+            toast.error(msg);
+            setLoggingOut(false);
+          },
         },
-      },
-    });
+      });
+    } catch (err: unknown) {
+      logServerError("Unexpected sign out error", err);
+      toast.error("Unable to sign out. Please try again.");
+      setLoggingOut(false);
+    }
   };
 
   const user = sessionData?.user || initialSession.user;
   const session = sessionData?.session || initialSession.session;
 
+  if (isPending && !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
+        <Card className="w-full max-w-md border-zinc-200 dark:border-zinc-800 text-center p-6">
+          <CardContent className="flex flex-col items-center gap-4">
+            <div className="size-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <p className="text-sm text-zinc-500">Loading your profile session...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!user || !session) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
+        <Card className="w-full max-w-md border-zinc-200 dark:border-zinc-800 text-center p-6">
+          <CardHeader>
+            <CardTitle>Session Not Available</CardTitle>
+            <CardDescription>
+              Your active session details could not be retrieved. Please sign in again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push("/login")} className="w-full">
+              Return to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const getInitials = (name: string) => {

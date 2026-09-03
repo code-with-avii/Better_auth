@@ -1,3 +1,4 @@
+"use client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +23,15 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { handleSocialLogin } from "@/lib/social-login";
 import { authClient } from "@/lib/auth-client";
+import { useToast } from "@/components/ui/toast";
+import { getUserFriendlyErrorMessage, logServerError } from "@/lib/errors";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const toast = useToast();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,32 +64,57 @@ export function LoginForm({
       return;
     }
 
-    const { error: signInError } = await authClient.signIn.email({
-      email: cleanEmail,
-      password,
-      callbackURL: "/dashboard",
-    });
+    try {
+      const { error: signInError } = await authClient.signIn.email({
+        email: cleanEmail,
+        password,
+        callbackURL: "/dashboard",
+      });
 
-    if (signInError) {
-      setError(signInError.message || "Invalid email or password");
+      if (signInError) {
+        logServerError("Login flow", signInError);
+        const friendlyMsg = getUserFriendlyErrorMessage(
+          signInError,
+          "Incorrect email address or password."
+        );
+        setError(friendlyMsg);
+        toast.error(friendlyMsg);
+        setLoading(false);
+        return;
+      }
+
+      toast.success("Signed in successfully!");
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      logServerError("Unexpected login error", err);
+      const friendlyMsg = getUserFriendlyErrorMessage(err);
+      setError(friendlyMsg);
+      toast.error(friendlyMsg);
       setLoading(false);
-      return;
     }
-
-    router.push("/dashboard");
   };
+
   const onSocialLogin = async (provider: "google" | "github") => {
     try {
       setSocialLoading(provider);
       setError("");
 
       await handleSocialLogin(provider);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Social login failed");
-
+    } catch (err: unknown) {
+      logServerError(`Social login ${provider}`, err);
+      const providerName = provider === "google" ? "Google" : "GitHub";
+      const msg = getUserFriendlyErrorMessage(
+        err,
+        `We couldn't sign you in with ${providerName}. Please try again.`
+      );
+      setError(msg);
+      toast.error(msg);
       setSocialLoading(null);
     }
   };
+
+  const isAnyLoading = loading || socialLoading !== null;
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -104,7 +133,7 @@ export function LoginForm({
                     variant="outline"
                     type="button"
                     className="w-full"
-                    disabled={loading || socialLoading !== null}
+                    disabled={isAnyLoading}
                     onClick={() => onSocialLogin("google")}
                   >
                     <svg
@@ -127,7 +156,7 @@ export function LoginForm({
                     variant="outline"
                     type="button"
                     className="w-full"
-                    disabled={loading || socialLoading !== null}
+                    disabled={isAnyLoading}
                     onClick={() => onSocialLogin("github")}
                   >
                     <svg
@@ -159,7 +188,7 @@ export function LoginForm({
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  disabled={loading}
+                  disabled={isAnyLoading}
                 />
               </Field>
               <Field>
@@ -179,12 +208,13 @@ export function LoginForm({
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    disabled={loading}
+                    disabled={isAnyLoading}
                     className="pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isAnyLoading}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                   >
                     {showPassword ? (
@@ -204,7 +234,7 @@ export function LoginForm({
               )}
 
               <Field>
-                <Button type="submit" disabled={loading} className="w-full">
+                <Button type="submit" disabled={isAnyLoading} className="w-full">
                   {loading ? "Logging in..." : "Login"}
                 </Button>
 
