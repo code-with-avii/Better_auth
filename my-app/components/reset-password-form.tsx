@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { authClient } from "@/lib/auth-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 export function ResetPasswordForm({
@@ -27,26 +27,43 @@ export function ResetPasswordForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const [token] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return new URLSearchParams(window.location.search).get("token") || (router?.query?.token as string) || null;
-    }
-    return null;
-  });
-
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(() => {
-    if (typeof window !== "undefined") {
-      const t = new URLSearchParams(window.location.search).get("token") || (router?.query?.token as string) || null;
-      if (!t) return "Invalid or missing password reset token.";
-    }
-    return "";
-  });
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const urlToken =
+      (router.query.token as string) ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("token")
+        : null);
+
+    const urlError =
+      (router.query.error as string) ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("error")
+        : null);
+
+    if (urlError === "INVALID_TOKEN") {
+      setError("This password reset link is invalid or has expired. Please request a new link.");
+      setToken(null);
+    } else if (!urlToken) {
+      setError("Invalid or missing password reset token.");
+      setToken(null);
+    } else {
+      setToken(urlToken);
+      setError("");
+    }
+    setIsInitializing(false);
+  }, [router.isReady, router.query]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -54,7 +71,7 @@ export function ResetPasswordForm({
     setError("");
 
     if (!token) {
-      setError("Reset token is missing.");
+      setError("Reset token is missing or invalid.");
       setLoading(false);
       return;
     }
@@ -70,7 +87,7 @@ export function ResetPasswordForm({
       setLoading(false);
       return;
     }
-    
+
     try {
       const { error: resetError } = await authClient.resetPassword({
         newPassword: password,
@@ -89,7 +106,8 @@ export function ResetPasswordForm({
         router.push("/login");
       }, 3000);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred.";
       setError(message);
       setLoading(false);
     }
@@ -126,13 +144,13 @@ export function ResetPasswordForm({
                       required
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      disabled={loading || !token}
+                      disabled={loading || !token || isInitializing}
                       className="pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={!token}
+                      disabled={!token || isInitializing}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                     >
                       {showPassword ? (
@@ -155,7 +173,7 @@ export function ResetPasswordForm({
                     required
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    disabled={loading || !token}
+                    disabled={loading || !token || isInitializing}
                   />
                   <FieldDescription>Please confirm your new password.</FieldDescription>
                 </Field>
@@ -167,7 +185,7 @@ export function ResetPasswordForm({
                 )}
 
                 <Field>
-                  <Button type="submit" disabled={loading || !token} className="w-full">
+                  <Button type="submit" disabled={loading || !token || isInitializing} className="w-full">
                     {loading ? "Resetting..." : "Reset Password"}
                   </Button>
                 </Field>

@@ -1,11 +1,12 @@
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { GalleryVerticalEndIcon } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { fromNodeHeaders } from "better-auth/node";
 import { GetServerSideProps } from "next";
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await auth.api.getSession({
-    headers: new Headers(context.req.headers as unknown as Record<string, string>),
+    headers: fromNodeHeaders(context.req.headers),
   });
 
   if (session) {

@@ -1,5 +1,6 @@
 import { authClient } from "@/lib/auth-client";
 import { auth } from "@/lib/auth";
+import { fromNodeHeaders } from "better-auth/node";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -26,9 +27,7 @@ import {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await auth.api.getSession({
-    headers: new Headers(
-      context.req.headers as unknown as Record<string, string>,
-    ),
+    headers: fromNodeHeaders(context.req.headers),
   });
 
   if (!session) {
